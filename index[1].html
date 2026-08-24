@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Довідник Odrex</title>
+<style>
+  :root{
+    --green:#0F4C3A; --green-light:#1C6B52; --bg:#F5F6F4; --card:#FFFFFF;
+    --border:#E3E7E2; --border-hover:#C7D0C9; --text:#141915; --text-dim:#6B7570;
+    --text-dimmer:#9AA39D; --amber-bg:#FBF2DE; --amber-text:#8A6A1F;
+    --code-bg:#E7F0EA; --err-bg:#FBEAE5; --err-text:#B3492F;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:ui-sans-serif,system-ui,sans-serif;}
+  .serif{font-family:ui-serif,Georgia,serif;}
+  .mono{font-family:ui-monospace,Menlo,Consolas,monospace;}
+  button{cursor:pointer;font-family:inherit;border:none;}
+  input,select,textarea{font-family:inherit;}
+  a{color:var(--green);}
+
+  /* Login */
+  #login{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;}
+  .login-box{width:100%;max-width:360px;}
+  .login-logo{width:56px;height:56px;border-radius:50%;background:var(--green);display:flex;align-items:center;justify-content:center;margin:0 auto 16px;}
+  .login-logo span{color:#fff;font-size:20px;font-weight:600;}
+  .login-title{text-align:center;font-size:24px;font-weight:600;margin:0 0 4px;}
+  .login-sub{text-align:center;font-size:13px;color:var(--text-dim);margin:0 0 24px;}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;}
+  label.field-label{display:block;font-size:11px;font-weight:600;color:var(--text-dim);text-transform:uppercase;letter-spacing:.03em;margin-bottom:8px;}
+  .input{width:100%;padding:12px 12px 12px 38px;border-radius:12px;border:1px solid var(--border);background:#FAFBFA;font-size:14px;}
+  .input-wrap{position:relative;}
+  .input-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--text-dimmer);font-size:14px;}
+  .btn-primary{width:100%;margin-top:16px;padding:12px;border-radius:12px;background:var(--green);color:#fff;font-size:14px;font-weight:500;}
+  .error-text{margin-top:8px;font-size:12px;color:var(--err-text);}
+  .hint{text-align:center;font-size:12px;color:var(--text-dimmer);margin-top:20px;}
+
+  /* App shell */
+  #app{display:none;min-height:100vh;}
+  .layout{display:flex;min-height:100vh;}
+  .sidebar{width:264px;flex-shrink:0;background:var(--green);display:flex;flex-direction:column;}
+  .sidebar-head{padding:24px 20px;border-bottom:1px solid rgba(255,255,255,.1);}
+  .sidebar-head .brand{color:#fff;font-weight:600;font-size:16px;}
+  .sidebar-head .role{display:flex;align-items:center;gap:6px;color:rgba(209,250,229,.8);font-size:12px;margin-top:8px;}
+  .nav{flex:1;padding:16px 12px;overflow-y:auto;}
+  .nav-all{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:transparent;color:rgba(209,250,229,.7);font-size:14px;margin-bottom:8px;text-align:left;border:1px dashed rgba(255,255,255,.2);}
+  .nav button.cat-btn{width:100%;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 12px;border-radius:8px;background:transparent;color:rgba(209,250,229,.7);font-size:13px;margin-bottom:3px;text-align:left;}
+  .nav button.cat-btn.active{background:rgba(255,255,255,.15);color:#fff;}
+  .nav button.cat-btn:hover{background:rgba(255,255,255,.08);color:#fff;}
+  .nav button.cat-btn .n{opacity:.6;font-size:11px;}
+  .sidebar-foot{padding:12px;border-top:1px solid rgba(255,255,255,.1);}
+  .sidebar-foot button{width:100%;display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:8px;background:transparent;color:rgba(209,250,229,.6);font-size:14px;text-align:left;}
+  .sidebar-foot button:hover{background:rgba(255,255,255,.08);color:#fff;}
+
+  .main{flex:1;min-width:0;}
+  .topbar{padding:24px 32px;border-bottom:1px solid var(--border);background:rgba(255,255,255,.6);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+  .topbar h2{margin:0;font-size:20px;font-weight:600;}
+  .topbar .count{font-size:12px;color:var(--text-dim);margin-top:2px;}
+  .topbar-actions{display:flex;align-items:center;gap:12px;}
+  .search-wrap{position:relative;}
+  .search-wrap input{padding:8px 12px 8px 34px;border-radius:8px;border:1px solid var(--border);background:#fff;font-size:14px;width:220px;}
+  .search-wrap .icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text-dimmer);font-size:13px;}
+  .btn-add{display:flex;align-items:center;gap:6px;padding:9px 14px;border-radius:8px;background:var(--green);color:#fff;font-size:14px;font-weight:500;}
+
+  .content{padding:32px;}
+  .empty{text-align:center;padding:80px 0;color:var(--text-dimmer);font-size:14px;}
+  .items{display:grid;gap:14px;}
+  .item-card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px 20px;}
+  .item-card:hover{border-color:var(--border-hover);}
+  .item-top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;}
+  .item-title-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:6px;}
+  .item-title-link{font-size:15px;font-weight:500;margin:0;text-decoration:none;color:var(--text);}
+  .item-title-link:hover{color:var(--green);text-decoration:underline;}
+  .badge-code{font-size:11px;padding:2px 6px;border-radius:6px;color:var(--green);background:var(--code-bg);}
+  .badge-cat{font-size:11px;padding:2px 6px;border-radius:6px;color:var(--text-dim);background:#EFF1EF;}
+  .badge-aud{font-size:11px;padding:2px 6px;border-radius:6px;color:var(--amber-text);background:var(--amber-bg);}
+  .item-note{font-size:13px;color:#4A544E;white-space:pre-wrap;line-height:1.5;margin:0;}
+  .item-actions{display:flex;gap:4px;flex-shrink:0;}
+  .icon-btn{padding:8px;border-radius:8px;background:transparent;color:var(--text-dim);}
+  .icon-btn:hover{background:#F0F2EF;color:var(--text);}
+  .icon-btn.danger:hover{background:var(--err-bg);color:var(--err-text);}
+
+  /* Modal */
+  .overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.3);align-items:center;justify-content:center;padding:24px;z-index:50;}
+  .overlay.show{display:flex;}
+  .modal{background:#fff;border-radius:16px;width:100%;max-width:480px;padding:24px;max-height:85vh;overflow-y:auto;}
+  .modal-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+  .modal-head h3{margin:0;font-size:16px;font-weight:500;}
+  .modal-head button{background:transparent;color:var(--text-dimmer);font-size:18px;}
+  .field{margin-bottom:12px;}
+  .field label{display:block;font-size:12px;font-weight:500;color:var(--text-dim);margin-bottom:4px;}
+  .field input,.field select,.field textarea{width:100%;padding:8px 10px;border-radius:8px;border:1px solid var(--border);font-size:14px;}
+  .field textarea{resize:vertical;line-height:1.5;}
+  .modal-actions{display:flex;gap:8px;margin-top:18px;}
+  .btn-save{display:flex;align-items:center;gap:6px;padding:9px 16px;border-radius:8px;background:var(--green);color:#fff;font-size:14px;font-weight:500;}
+  .btn-cancel{padding:9px 16px;border-radius:8px;background:transparent;color:var(--text-dim);font-size:14px;}
+  .btn-cancel:hover{background:#F0F2EF;}
+
+  .aud-grid{display:flex;flex-direction:column;gap:6px;border:1px solid var(--border);border-radius:8px;padding:10px;max-height:180px;overflow-y:auto;}
+  .aud-opt{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .aud-opt input{width:auto;}
+
+  .branch-row{display:flex;align-items:center;gap:8px;background:#FAFBFA;border:1px solid var(--border);border-radius:8px;padding:10px;margin-bottom:8px;}
+  .branch-row .name{font-size:14px;flex:1;}
+  .branch-row .pass-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+  .branch-row input{width:110px;padding:4px 8px;font-size:12px;border-radius:6px;border:1px solid var(--border);}
+  .branch-row .save-link{font-size:12px;color:var(--green);background:none;text-decoration:underline;}
+  .inline-row{display:flex;gap:8px;}
+  .banner-err{margin-bottom:16px;font-size:12px;color:var(--err-text);background:var(--err-bg);border-radius:8px;padding:8px 12px;display:inline-block;}
+  .loading{min-height:100vh;display:flex;align-items:center;justify-content:center;color:var(--text-dim);font-size:14px;}
+</style>
+</head>
+<body>
+
+<div id="loading" class="loading">Завантаження…</div>
+
+<div id="login">
+  <div class="login-box">
+    <div class="login-logo"><span class="serif">O</span></div>
+    <h1 class="login-title serif">Довідник Odrex</h1>
+    <p class="login-sub">Внутрішній портал для адміністраторів</p>
+    <div class="card">
+      <label class="field-label">Код доступу</label>
+      <div class="input-wrap">
+        <span class="input-icon">🔒</span>
+        <input id="passInput" class="input" type="password" placeholder="Введіть код">
+      </div>
+      <div id="loginError" class="error-text" style="display:none;"></div>
+      <button class="btn-primary" onclick="handleLogin()">Увійти</button>
+    </div>
+    <p class="hint">Код видає керівник кол центру. Свій вхід у кожної філії реєстратури.</p>
+  </div>
+</div>
+
+<div id="app">
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div class="brand serif">Довідник Odrex</div>
+        <div class="role"><span id="roleName"></span></div>
+      </div>
+      <nav class="nav">
+        <button class="nav-all" onclick="selectCategory(null)">Всі розділи</button>
+        <div id="navCategories"></div>
+      </nav>
+      <div id="branchManagerBtnWrap" class="sidebar-foot" style="display:none;border-top:none;">
+        <button onclick="openBranchManager()">⚙️ Філії та коди доступу</button>
+      </div>
+      <div class="sidebar-foot">
+        <button onclick="logout()">← Вийти</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2 id="catTitle" class="serif"></h2>
+          <div class="count" id="itemCount"></div>
+        </div>
+        <div class="topbar-actions">
+          <div class="search-wrap">
+            <span class="icon">🔍</span>
+            <input id="searchInput" placeholder="Пошук…" oninput="renderItems()">
+          </div>
+          <button class="btn-add" id="addBtn" style="display:none;" onclick="startNew()">+ Додати</button>
+        </div>
+      </div>
+      <div class="content">
+        <div id="saveErrBanner"></div>
+        <div id="itemsWrap"></div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<div class="overlay" id="itemOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3 id="itemModalTitle">Новий запис</h3>
+      <button onclick="closeItemModal()">✕</button>
+    </div>
+    <div class="field">
+      <label>Розділ</label>
+      <input id="fCategory" list="categoryOptions" placeholder="Наприклад: Скринінг 40+ НСЗУ">
+      <datalist id="categoryOptions"></datalist>
+    </div>
+    <div class="field">
+      <label>Назва документа</label>
+      <input id="fTitle" placeholder="Наприклад: Алгоритм запису на скринінг">
+    </div>
+    <div class="field">
+      <label>Посилання на документ</label>
+      <input id="fUrl" placeholder="https://docs.google.com/...">
+    </div>
+    <div class="field">
+      <label>Код послуги (необов'язково)</label>
+      <input id="fCode" class="mono" placeholder="996.8211">
+    </div>
+    <div class="field">
+      <label>Хто бачить</label>
+      <div class="aud-grid" id="fAudienceGrid"></div>
+    </div>
+    <div class="field">
+      <label>Коротка примітка (необов'язково)</label>
+      <textarea id="fNote" rows="3" placeholder="Пару слів про що документ"></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-save" onclick="saveItem()">💾 Зберегти</button>
+      <button class="btn-cancel" onclick="closeItemModal()">Скасувати</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="branchOverlay">
+  <div class="modal">
+    <div class="modal-head">
+      <h3>Філії та коди доступу</h3>
+      <button onclick="closeBranchManager()">✕</button>
+    </div>
+    <div class="field">
+      <label>Код кол центру</label>
+      <div class="inline-row">
+        <input id="ccCodeInput">
+        <button class="btn-save" onclick="saveSetting('callcenterPasscode', document.getElementById('ccCodeInput').value)">OK</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Код адміністратора порталу</label>
+      <div class="inline-row">
+        <input id="adminCodeInput">
+        <button class="btn-save" onclick="saveSetting('adminPasscode', document.getElementById('adminCodeInput').value)">OK</button>
+      </div>
+    </div>
+    <div class="field">
+      <label>Філії реєстратури</label>
+      <div id="branchList"></div>
+    </div>
+    <div class="inline-row" style="margin-top:8px;">
+      <input id="newBranchName" placeholder="Назва нової філії">
+      <button class="btn-save" onclick="addBranch()">+ Додати</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ЗАМІНИ ЦЕ на свій URL Web App після деплою Apps Script (Deploy > New deployment > Web app)
+const API_URL = "PASTE_YOUR_APPS_SCRIPT_URL_HERE";
+
+let state = { role: null, items: [], branches: [], activeCategory: null, myCode: "" };
+let editingItem = null;
+
+function apiGet(code) {
+  return fetch(API_URL + "?code=" + encodeURIComponent(code)).then(r => r.json());
+}
+function apiPost(payload) {
+  return fetch(API_URL, { method: "POST", body: JSON.stringify(payload) }).then(r => r.json());
+}
+
+function handleLogin() {
+  const code = document.getElementById("passInput").value.trim();
+  if (!code) return;
+  document.getElementById("loginError").style.display = "none";
+  apiGet(code).then(data => {
+    if (data.error) {
+      document.getElementById("loginError").textContent = "Код доступу не знайдено";
+      document.getElementById("loginError").style.display = "block";
+      return;
+    }
+    state.role = data.role;
+    state.items = data.items;
+    state.branches = data.branches;
+    state.myCode = code;
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    renderShell();
+  }).catch(() => {
+    document.getElementById("loginError").textContent = "Помилка звʼязку. Перевір API_URL і спробуй ще раз.";
+    document.getElementById("loginError").style.display = "block";
+  });
+}
+
+function logout() {
+  state = { role: null, items: [], branches: [], activeCategory: null, myCode: "" };
+  document.getElementById("app").style.display = "none";
+  document.getElementById("login").style.display = "flex";
+  document.getElementById("passInput").value = "";
+}
+
+function getCategories() {
+  const map = {};
+  state.items.forEach(i => {
+    const c = i.category || "Без розділу";
+    map[c] = (map[c] || 0) + 1;
+  });
+  return Object.keys(map).sort((a, b) => a.localeCompare(b, "uk")).map(name => ({ name, count: map[name] }));
+}
+
+function selectCategory(name) {
+  state.activeCategory = name;
+  renderShell();
+}
+
+function renderShell() {
+  const roleLabel = state.role.type === "admin" ? "🛡 " + state.role.name
+    : state.role.type === "callcenter" ? "📞 " + state.role.name
+    : "🏥 " + state.role.name;
+  document.getElementById("roleName").textContent = roleLabel;
+
+  const cats = getCategories();
+  const nav = document.getElementById("navCategories");
+  nav.innerHTML = cats.map(c =>
+    '<button class="cat-btn' + (state.activeCategory === c.name ? " active" : "") + '" onclick=\'selectCategory(' + JSON.stringify(c.name) + ')\'>'
+    + '<span>' + escapeHtml(c.name) + '</span><span class="n">' + c.count + '</span></button>'
+  ).join("");
+  document.querySelector(".nav-all").className = "nav-all" + (state.activeCategory === null ? " active" : "");
+  if (state.activeCategory === null) document.querySelector(".nav-all").style.background = "rgba(255,255,255,.15)";
+  else document.querySelector(".nav-all").style.background = "transparent";
+
+  document.getElementById("branchManagerBtnWrap").style.display = state.role.type === "admin" ? "block" : "none";
+  document.getElementById("addBtn").style.display = state.role.type === "admin" ? "flex" : "none";
+
+  document.getElementById("catTitle").textContent = state.activeCategory || "Всі розділи";
+
+  const dl = document.getElementById("categoryOptions");
+  dl.innerHTML = cats.map(c => '<option value="' + escapeHtml(c.name) + '">').join("");
+
+  renderItems();
+}
+
+function renderItems() {
+  const q = document.getElementById("searchInput").value.trim().toLowerCase();
+  const list = state.items
+    .filter(i => state.activeCategory === null || (i.category || "Без розділу") === state.activeCategory)
+    .filter(i => !q || (i.title + " " + (i.note || "") + " " + (i.code || "") + " " + (i.category || "")).toLowerCase().includes(q))
+    .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+
+  document.getElementById("itemCount").textContent = list.length + (list.length === 1 ? " запис" : " записів");
+
+  const wrap = document.getElementById("itemsWrap");
+  if (list.length === 0) {
+    wrap.innerHTML = '<div class="empty">Тут поки що нічого немає' + (state.role.type === "admin" ? ", натисни Додати" : "") + '.</div>';
+    return;
+  }
+
+  wrap.innerHTML = '<div class="items">' + list.map(item => {
+    const codeBadge = item.code ? '<span class="badge-code mono">' + escapeHtml(item.code) + '</span>' : "";
+    const catBadge = state.activeCategory === null && item.category ? '<span class="badge-cat">' + escapeHtml(item.category) + '</span>' : "";
+    const audBadge = '<span class="badge-aud">' + escapeHtml(audienceLabel(item)) + '</span>';
+    const noteHtml = item.note ? '<p class="item-note">' + escapeHtml(item.note) + '</p>' : "";
+    const actions = state.role.type === "admin"
+      ? '<div class="item-actions">'
+        + '<button class="icon-btn" onclick=\'editItem("' + item.id + '")\'>✏️</button>'
+        + '<button class="icon-btn danger" onclick=\'deleteItemConfirm("' + item.id + '")\'>🗑️</button>'
+        + '</div>'
+      : "";
+    return '<div class="item-card"><div class="item-top">'
+      + '<div style="min-width:0;">'
+      + '<div class="item-title-row"><a class="item-title-link" href="' + escapeAttr(item.url || "#") + '" target="_blank" rel="noopener">' + escapeHtml(item.title) + '</a>' + codeBadge + catBadge + audBadge + '</div>'
+      + noteHtml
+      + '</div>' + actions + '</div></div>';
+  }).join("") + '</div>';
+}
+
+function audienceLabel(item) {
+  const tags = (item.audience || "").split(",").map(s => s.trim()).filter(Boolean);
+  if (tags.indexOf("all") > -1) return "Всі";
+  const parts = [];
+  if (tags.indexOf("callcenter") > -1) parts.push("Кол центр");
+  tags.forEach(t => {
+    const b = state.branches.find(x => x.id === t);
+    if (b) parts.push(b.name);
+  });
+  return parts.length ? parts.join(", ") : "Нікому";
+}
+
+function escapeHtml(s) {
+  return (s || "").replace(/[&<>"']/g, m => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
+}
+function escapeAttr(s) { return escapeHtml(s); }
+
+function startNew() {
+  editingItem = { id: null, category: state.activeCategory || "", title: "", code: "", url: "", audience: state.role.type === "branch" ? [state.role.id] : ["all"], note: "" };
+  openItemModal();
+}
+function editItem(id) {
+  const src = state.items.find(i => i.id === id);
+  editingItem = { ...src, audience: (src.audience || "").split(",").map(s => s.trim()).filter(Boolean) };
+  openItemModal();
+}
+function openItemModal() {
+  document.getElementById("itemModalTitle").textContent = editingItem.id ? "Редагувати запис" : "Новий запис";
+  document.getElementById("fCategory").value = editingItem.category || "";
+  document.getElementById("fTitle").value = editingItem.title || "";
+  document.getElementById("fUrl").value = editingItem.url || "";
+  document.getElementById("fCode").value = editingItem.code || "";
+  document.getElementById("fNote").value = editingItem.note || "";
+
+  const grid = document.getElementById("fAudienceGrid");
+  const opts = [{ id: "all", name: "Всі (кол центр + усі філії)" }, { id: "callcenter", name: "Кол центр" }]
+    .concat(state.branches.map(b => ({ id: b.id, name: b.name })));
+  grid.innerHTML = opts.map(o =>
+    '<label class="aud-opt"><input type="checkbox" value="' + o.id + '"' + (editingItem.audience.indexOf(o.id) > -1 ? " checked" : "") + '> ' + escapeHtml(o.name) + '</label>'
+  ).join("");
+
+  document.getElementById("itemOverlay").classList.add("show");
+}
+function closeItemModal() {
+  document.getElementById("itemOverlay").classList.remove("show");
+  editingItem = null;
+}
+function saveItem() {
+  const title = document.getElementById("fTitle").value.trim();
+  if (!title) return;
+  const checked = Array.from(document.querySelectorAll("#fAudienceGrid input:checked")).map(i => i.value);
+  const item = {
+    id: editingItem.id,
+    category: document.getElementById("fCategory").value.trim(),
+    title: title,
+    url: document.getElementById("fUrl").value.trim(),
+    code: document.getElementById("fCode").value.trim(),
+    audience: checked.length ? checked : ["all"],
+    note: document.getElementById("fNote").value,
+  };
+  apiPost({ action: "saveItem", adminCode: state.myCode, item: item }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    refreshData(() => { closeItemModal(); });
+  }).catch(showSaveError);
+}
+function deleteItemConfirm(id) {
+  if (!confirm("Видалити цей запис?")) return;
+  apiPost({ action: "deleteItem", adminCode: state.myCode, id: id }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    refreshData();
+  }).catch(showSaveError);
+}
+
+function refreshData(cb) {
+  apiGet(state.myCode).then(data => {
+    if (data.error) return;
+    state.items = data.items;
+    state.branches = data.branches;
+    renderShell();
+    if (cb) cb();
+  });
+}
+
+function showSaveError() {
+  document.getElementById("saveErrBanner").innerHTML = '<div class="banner-err">Не вдалося зберегти. Спробуй ще раз.</div>';
+  setTimeout(() => { document.getElementById("saveErrBanner").innerHTML = ""; }, 4000);
+}
+
+function openBranchManager() {
+  document.getElementById("ccCodeInput").value = "";
+  document.getElementById("adminCodeInput").value = "";
+  renderBranchList();
+  document.getElementById("branchOverlay").classList.add("show");
+}
+function closeBranchManager() {
+  document.getElementById("branchOverlay").classList.remove("show");
+}
+function renderBranchList() {
+  const wrap = document.getElementById("branchList");
+  wrap.innerHTML = state.branches.map(b => (
+    '<div class="branch-row"><div style="flex:1;min-width:0;">'
+    + '<div class="name">' + escapeHtml(b.name) + '</div>'
+    + '<div class="pass-row">'
+    + '<input class="mono" id="pass-' + b.id + '" value="' + escapeHtml(b.passcode || "") + '">'
+    + '<button class="save-link" onclick=\'updateBranchPasscode("' + b.id + '")\'>зберегти код</button>'
+    + '</div></div>'
+    + '<button class="icon-btn danger" onclick=\'removeBranch("' + b.id + '")\'>🗑️</button>'
+    + '</div>'
+  )).join("");
+}
+function addBranch() {
+  const name = document.getElementById("newBranchName").value.trim();
+  if (!name) return;
+  apiPost({ action: "addBranch", adminCode: state.myCode, name: name }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    document.getElementById("newBranchName").value = "";
+    refreshData(() => renderBranchList());
+  }).catch(showSaveError);
+}
+function removeBranch(id) {
+  if (!confirm("Видалити цю філію?")) return;
+  apiPost({ action: "removeBranch", adminCode: state.myCode, id: id }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    refreshData(() => renderBranchList());
+  }).catch(showSaveError);
+}
+function updateBranchPasscode(id) {
+  const val = document.getElementById("pass-" + id).value.trim();
+  apiPost({ action: "updateBranchPasscode", adminCode: state.myCode, id: id, passcode: val }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    refreshData(() => renderBranchList());
+  }).catch(showSaveError);
+}
+function saveSetting(key, value) {
+  if (!value.trim()) return;
+  apiPost({ action: "updateSetting", adminCode: state.myCode, key: key, value: value.trim() }).then(res => {
+    if (res.error) { showSaveError(); return; }
+    if (key === "adminPasscode") state.myCode = value.trim();
+  }).catch(showSaveError);
+}
+
+document.getElementById("loading").style.display = "none";
+document.getElementById("passInput").addEventListener("keydown", e => { if (e.key === "Enter") handleLogin(); });
+</script>
+</body>
+</html>
